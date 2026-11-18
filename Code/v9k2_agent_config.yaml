@@ -1,0 +1,2 @@
+- name: v9k2_agent
+  _target_: v9k2_agent_loop.V9K2AgentLoop
