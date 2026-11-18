@@ -40,6 +40,6 @@ LOCAL=1 DATASET=videomme VIDEO_ROOT=/path/to/videos \
 bash run_gpu.sh
 ```
 
-`DATASET` can be `videomme`, `longvideobench`, `lvbench`, `videoholmes`, `mlvu`, or `videommu`.
+`DATASET` can be `videomme`, `longvideobench`, `lvbench`, `videoholmes`, or `mlvu`.
 
 Trajectories for supervised fine-tuning are built with `cgbench_v9k2_sft_builder-Final.py`. Training is launched with `run_v9k2_gspo_8gpu_1node.sh` on a Ray cluster; pass the checkpoint, data, and video paths through the environment variables at the top of that script. Frame extraction needs `ffmpeg`.
