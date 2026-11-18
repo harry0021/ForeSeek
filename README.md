@@ -20,10 +20,6 @@ ForeSeek keeps a predictive state: a global interval belief, an expectation for 
 | Partially confirmed | The expectation is refined on a narrower sub-interval. |
 | Not found | The current interval is deprioritized and the search moves elsewhere. |
 
-Training has two stages. Supervised fine-tuning learns full foresight trajectories, including the expectation, the verdict, and the belief update. Group Sequence Policy Optimization then rewards a correct answer and favors trajectories that stop once the evidence is sufficient. Questions come from CG-Bench, LongVideoBench, VideoHolmes, and LLaVA-Video, held out from the evaluation sets.
-
-On five long-video benchmarks, ForeSeek matches or exceeds the accuracy of the strongest search-based agent while reading 2.5–4.4× fewer frames.
-
 ## Checkpoints
 
 Weights: [huggingface.co/Harry0021/ForeSeek](https://huggingface.co/Harry0021/ForeSeek).
@@ -40,6 +36,6 @@ LOCAL=1 DATASET=videomme VIDEO_ROOT=/path/to/videos \
 bash run_gpu.sh
 ```
 
-`DATASET` can be `videomme`, `longvideobench`, `lvbench`, `videoholmes`, or `mlvu`.
+`DATASET` can be `videomme`, `longvideobench`, `lvbench`, `videoholmes`, `mlvu`, or `videommu`.
 
 Trajectories for supervised fine-tuning are built with `cgbench_v9k2_sft_builder-Final.py`. Training is launched with `run_v9k2_gspo_8gpu_1node.sh` on a Ray cluster; pass the checkpoint, data, and video paths through the environment variables at the top of that script. Frame extraction needs `ffmpeg`.
