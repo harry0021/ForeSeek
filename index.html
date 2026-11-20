@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ForeSeek</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f6f3ee;
+      color: #1c1915;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    main { width: min(920px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 64px; }
+    h1 { margin: 0 0 16px; font-size: 48px; font-weight: 600; letter-spacing: -0.03em; }
+    p { margin: 0 0 22px; max-width: 68ch; font-size: 18px; line-height: 1.5; }
+    nav { display: flex; gap: 18px; margin-bottom: 28px; font-family: "Segoe UI", sans-serif; font-size: 16px; }
+    a { color: #0d5c4a; }
+    img { width: 100%; height: auto; display: block; background: white; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ForeSeek</h1>
+    <p>ForeSeek searches a long video by predicting what unseen intervals should contain, then checking those predictions. A failed expectation is kept as evidence: that interval is set aside and the search moves elsewhere.</p>
+    <nav>
+      <a href="https://github.com/harry0021/ForeSeek">GitHub</a>
+      <a href="https://huggingface.co/Harry0021/ForeSeek">Hugging Face</a>
+    </nav>
+    <img src="ForeSeek_main.png" alt="ForeSeek">
+  </main>
+</body>
+</html>
