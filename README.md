@@ -2,6 +2,8 @@
 
 ForeSeek is a video agent that searches a long video by predicting what unseen intervals should contain, then checking those predictions. A failed expectation is kept as evidence: the implausible interval is set aside and the search moves to another region of the timeline.
 
+Paper: [arxiv.org/pdf/2611.26024](https://arxiv.org/pdf/2611.26024).
+
 <p align="center">
   <img src="ForeSeek_main.png" alt="ForeSeek overview. Phase 1 builds a belief map from a sparse scan. Phase 2 checks the prediction and narrows or redirects the search." width="100%">
 </p>
