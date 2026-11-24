@@ -1,33 +1,2167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ForeSeek</title>
-  <style>
-    body {
-      margin: 0;
-      background: #f6f3ee;
-      color: #1c1915;
-      font-family: Georgia, "Times New Roman", serif;
-    }
-    main { width: min(920px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 64px; }
-    h1 { margin: 0 0 16px; font-size: 48px; font-weight: 600; letter-spacing: -0.03em; }
-    p { margin: 0 0 22px; max-width: 68ch; font-size: 18px; line-height: 1.5; }
-    nav { display: flex; gap: 18px; margin-bottom: 28px; font-family: "Segoe UI", sans-serif; font-size: 16px; }
-    a { color: #0d5c4a; }
-    img { width: 100%; height: auto; display: block; background: white; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ForeSeek: Foresight-Driven Reasoning for Long-Form Video Understanding</title>
+<meta name="description" content="ForeSeek transforms long-video reasoning from reactive retrieval into predictive exploration via visually grounded expectations, verification feedback, and efficiency-aware RL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f8fafc;
+    --bg-subtle: #f1f5f9;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+
+    --brand: #1d4ed8;
+    --brand-dark: #1e3a8a;
+    --brand-soft: #eff6ff;
+    --brand-border: #bfdbfe;
+    --indigo: #4338ca;
+
+    --hit: #15803d;
+    --hit-bg: #ecfdf5;
+    --hit-border: #bbf7d0;
+
+    --partial: #b45309;
+    --partial-bg: #fffbeb;
+    --partial-border: #fde68a;
+
+    --miss: #be123c;
+    --miss-bg: #fff1f2;
+    --miss-border: #fecdd3;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 8px 24px -6px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 20px 48px -12px rgba(15, 23, 42, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .container {
+    width: min(1100px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+
+  .container-narrow {
+    width: min(900px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+
+  /* Sticky Navbar */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  }
+  .navbar-inner {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand:hover { text-decoration: none; }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 100%);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(29, 78, 216, 0.28);
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-links a {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    background: var(--brand-soft);
+    color: var(--brand);
+    text-decoration: none;
+  }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .nav-icon-btn:hover {
+    border-color: var(--brand-border);
+    background: var(--brand-soft);
+    color: var(--brand);
+    text-decoration: none;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 58px 0 46px;
+    background:
+      radial-gradient(760px 360px at 50% -10%, rgba(59, 130, 246, 0.13) 0%, transparent 70%),
+      radial-gradient(480px 260px at 85% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
+      linear-gradient(180deg, #f8fbff 0%, #ffffff 68%);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 75%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 75%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    text-align: center;
+  }
+  .venue-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--brand-border);
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .venue-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+  h1.paper-title {
+    font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4.6vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    margin: 0 auto 22px;
+    max-width: 960px;
+    color: var(--ink);
+  }
+  .title-accent {
+    background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 55%, #0284c7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .authors {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 20px;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0 auto 10px;
+    max-width: 820px;
+  }
+  .author sup {
+    font-size: 11px;
+    color: var(--brand);
+    font-weight: 700;
+    margin-left: 2px;
+  }
+  .affiliations {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 24px;
+    font-size: 15px;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .affiliations sup {
+    font-size: 11px;
+    color: var(--brand);
+    font-weight: 700;
+    margin-right: 2px;
+  }
+  .author-notes {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 26px;
+  }
+
+  /* Action Pill Buttons */
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 34px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--line-strong);
+    background: #ffffff;
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--brand-border);
+    color: var(--brand);
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #ffffff;
+  }
+  .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Key Highlights Strip */
+  .highlights {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    max-width: 980px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .metric-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .metric-card:hover {
+    border-color: var(--brand-border);
+    box-shadow: var(--shadow-md);
+  }
+  .metric-value {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--brand);
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .metric-sub {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* Sections */
+  section {
+    padding: 64px 0;
+    scroll-margin-top: 64px;
+  }
+  section.alt {
+    background: var(--bg-alt);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto 32px;
+  }
+  .section-kicker {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 8px;
+  }
+  h2.section-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: clamp(26px, 3.2vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .section-desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* Teaser / Motivation */
+  .teaser-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .figure-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+  }
+  .figure-wrap {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    cursor: zoom-in;
+  }
+  .figure-wrap img {
+    width: 100%;
+    display: block;
+    border-radius: 10px;
+  }
+  .zoom-hint {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+  }
+  .figure-wrap:hover .zoom-hint { opacity: 1; }
+  .figure-caption {
+    margin: 12px 4px 2px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .figure-caption strong { color: var(--ink); }
+
+  .compare-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .compare-box {
+    flex: 1;
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+  }
+  .compare-box.old {
+    border-top: 3px solid var(--miss);
+    background: linear-gradient(180deg, #fffafa 0%, #ffffff 42%);
+  }
+  .compare-box.ours {
+    border-top: 3px solid var(--brand);
+    background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 42%);
+  }
+  .compare-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .compare-box.old .compare-badge { color: var(--miss); }
+  .compare-box.ours .compare-badge { color: var(--brand); }
+  .compare-box h3 {
+    margin: 0 0 12px;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .bullet-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .bullet-list li {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .bullet-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .compare-box.old .bullet-list li::before { background: var(--miss); }
+  .compare-box.ours .bullet-list li::before { background: var(--brand); }
+  .bullet-list strong { color: var(--ink); }
+
+  /* Abstract */
+  .abstract-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 32px 36px;
+    box-shadow: var(--shadow-sm);
+    font-size: 16.5px;
+    line-height: 1.78;
+    color: var(--ink-2);
+    text-align: justify;
+  }
+  .abstract-card p { margin: 0 0 14px; }
+  .abstract-card p:last-child { margin-bottom: 0; }
+  .abstract-card strong { color: var(--ink); font-weight: 600; }
+
+  /* Method */
+  .method-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .method-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  .step-num span {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: var(--brand);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .method-card h3 {
+    margin: 0;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .method-card p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-2);
+    line-height: 1.58;
+  }
+  .formula-box {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .verdict-list {
+    display: grid;
+    gap: 8px;
+  }
+  .verdict-item {
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    border: 1px solid transparent;
+  }
+  .verdict-item b { display: block; font-size: 13px; margin-bottom: 2px; }
+  .verdict-item.hit { background: var(--hit-bg); border-color: var(--hit-border); color: #14532d; }
+  .verdict-item.partial { background: var(--partial-bg); border-color: var(--partial-border); color: #78350f; }
+  .verdict-item.miss { background: var(--miss-bg); border-color: var(--miss-border); color: #881337; }
+
+  .belief-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .bpill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 6px;
+  }
+  .bpill.high { background: var(--hit-bg); color: var(--hit); border: 1px solid var(--hit-border); }
+  .bpill.med { background: var(--partial-bg); color: var(--partial); border: 1px solid var(--partial-border); }
+  .bpill.low { background: var(--bg-subtle); color: #475569; border: 1px solid var(--line-strong); }
+  .bpill.elim { background: var(--miss-bg); color: var(--miss); border: 1px solid var(--miss-border); }
+
+  /* Results & Tabs */
+  .tabs-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 26px;
+  }
+  .tab-btn {
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #ffffff;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover {
+    border-color: var(--brand-border);
+    color: var(--brand);
+  }
+  .tab-btn.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.22s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .table-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+  table.academic {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    min-width: 780px;
+  }
+  table.academic th,
+  table.academic td {
+    padding: 10px 11px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  table.academic th:first-child,
+  table.academic td:first-child {
+    text-align: left;
+    padding-left: 18px;
+  }
+  table.academic thead th {
+    background: #f8fafc;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+  table.academic thead tr.subhead th {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 11.5px;
+    padding-top: 6px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line-strong);
+  }
+  table.academic tr.group-row td {
+    background: #f1f5f9;
+    color: var(--ink-2);
+    font-style: italic;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 18px;
+    text-align: left;
+  }
+  table.academic tbody tr:hover:not(.group-row) {
+    background: #f8fafc;
+  }
+  table.academic tr.ours-row {
+    background: var(--brand-soft);
+    font-weight: 600;
+  }
+  table.academic tr.ours-row:hover {
+    background: #e0edff;
+  }
+  table.academic tr.ours-row td:first-child {
+    color: var(--brand-dark);
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--brand);
+  }
+  .best { font-weight: 800; color: var(--ink); }
+  .second { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+  .muted-cell { color: var(--muted); }
+  .delta {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--hit);
+    background: var(--hit-bg);
+    border-radius: 999px;
+    padding: 1px 7px;
+    margin-left: 5px;
+  }
+  .table-foot {
+    padding: 13px 18px;
+    font-size: 13px;
+    color: var(--muted);
+    background: #fafcff;
+    border-top: 1px solid var(--line);
+    line-height: 1.5;
+  }
+  .table-foot strong { color: var(--ink); }
+
+  /* Video-Native Visual Bars */
+  .vnat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .vnat-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .vnat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .vnat-head b { font-size: 14px; color: var(--ink); }
+  .vnat-gain {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--hit);
+    background: var(--hit-bg);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .bar-row { margin-bottom: 8px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .bar-meta strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .bar-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--bg-subtle);
+    overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 999px; }
+  .bar-fill.base { background: #94a3b8; }
+  .bar-fill.ours { background: linear-gradient(90deg, #1d4ed8, #4338ca); }
+
+  .sub-tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .sub-tables-grid table.academic { min-width: 0; }
+
+  /* Examples */
+  .case-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+  }
+  .case-card:last-child { margin-bottom: 0; }
+  .case-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .case-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand);
+    background: var(--brand-soft);
+    border: 1px solid var(--brand-border);
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+  .case-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .mini-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .mini-btn:hover {
+    border-color: var(--brand-border);
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+  .case-q {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: clamp(20px, 2.3vw, 24px);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+    color: var(--ink);
+  }
+  .opts-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .opt-pill {
+    font-size: 14px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    background: var(--bg-subtle);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    font-weight: 500;
+  }
+  .opt-pill.correct {
+    background: var(--hit-bg);
+    color: var(--hit);
+    border-color: var(--hit-border);
+    font-weight: 700;
+  }
+
+  .trace-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .trace-step {
+    border-radius: var(--radius-md);
+    padding: 14px 15px;
+    border: 1px solid var(--line);
+    background: var(--bg-alt);
+    position: relative;
+  }
+  .trace-step.miss { border-top: 3px solid var(--miss); background: linear-gradient(180deg, #fff6f7 0%, #ffffff 45%); }
+  .trace-step.partial { border-top: 3px solid var(--partial); background: linear-gradient(180deg, #fffcf2 0%, #ffffff 45%); }
+  .trace-step.hit { border-top: 3px solid var(--hit); background: linear-gradient(180deg, #f3fdf7 0%, #ffffff 45%); }
+  .trace-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .trace-time {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .trace-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .trace-step.miss .trace-badge { background: var(--miss-bg); color: var(--miss); }
+  .trace-step.partial .trace-badge { background: var(--partial-bg); color: var(--partial); }
+  .trace-step.hit .trace-badge { background: var(--hit-bg); color: var(--hit); }
+  .trace-step p {
+    margin: 0;
+    font-size: 13.8px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  .gif-stage {
+    background: #0f172a;
+    border-radius: 16px;
+    padding: 12px;
+    overflow-x: auto;
+    border: 1px solid #1e293b;
+  }
+  .gif-stage img {
+    width: 100%;
+    min-width: 720px;
+    display: block;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: zoom-in;
+  }
+
+  /* Resources + BibTeX */
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .res-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .res-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--brand-border);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  .res-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .res-card:hover .res-title { color: var(--brand); }
+  .res-card p {
+    margin: 0;
+    font-size: 13.8px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .res-link-text {
+    margin-top: auto;
+    padding-top: 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--brand);
+  }
+
+  .bibtex-card {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .bibtex-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: #1e293b;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    color: #f8fafc;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(148, 163, 184, 0.55);
+  }
+  .copy-btn.copied {
+    background: rgba(21, 128, 61, 0.32);
+    border-color: #4ade80;
+    color: #bbf7d0;
+  }
+  pre.bibtex-code {
+    margin: 0;
+    padding: 18px 20px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    overflow-x: auto;
+    color: #e2e8f0;
+  }
+
+  /* Footer */
+  footer {
+    padding: 32px 0 44px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-links a { color: var(--muted); font-weight: 500; }
+  .footer-links a:hover { color: var(--brand); }
+
+  /* Lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: min(1320px, 96vw);
+    max-height: 90vh;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: var(--shadow-lg);
+    cursor: default;
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 18px;
+    right: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .lightbox-close:hover { background: rgba(255, 255, 255, 0.16); }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .highlights { grid-template-columns: repeat(2, 1fr); }
+    .teaser-grid { grid-template-columns: 1fr; }
+    .method-cards { grid-template-columns: 1fr; }
+    .vnat-grid { grid-template-columns: repeat(2, 1fr); }
+    .sub-tables-grid { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .nav-links { display: none; }
+    .trace-steps { grid-template-columns: 1fr; }
+    .abstract-card { padding: 22px; text-align: left; }
+    .case-card { padding: 18px; }
+    .highlights { grid-template-columns: 1fr; }
+    .vnat-grid { grid-template-columns: 1fr; }
+    section { padding: 48px 0; }
+  }
+</style>
 </head>
 <body>
-  <main>
-    <h1>ForeSeek</h1>
-    <p>ForeSeek searches a long video by predicting what unseen intervals should contain, then checking those predictions. A failed expectation is kept as evidence: that interval is set aside and the search moves elsewhere.</p>
-    <nav>
-      <a href="https://github.com/harry0021/ForeSeek">GitHub</a>
-      <a href="https://huggingface.co/Harry0021/ForeSeek">Hugging Face</a>
-    </nav>
-    <img src="ForeSeek_main.png" alt="ForeSeek">
+
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+            <path d="M11 8v3l2 2"></path>
+          </svg>
+        </span>
+        ForeSeek
+      </a>
+      <nav class="nav-links" aria-label="Section navigation">
+        <a href="#overview">Overview</a>
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#examples">Examples</a>
+        <a href="#citation">Citation</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="nav-icon-btn" href="https://arxiv.org/pdf/2611.26024" target="_blank" rel="noopener">Paper</a>
+        <a class="nav-icon-btn" href="https://github.com/harry0021/ForeSeek" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="container hero-inner">
+        <div class="venue-pill">
+          <span class="venue-dot"></span>
+          <span>arXiv:2611.26024 · cs.AI · Nov 2026</span>
+        </div>
+
+        <h1 class="paper-title">
+          <span class="title-accent">ForeSeek</span>: Foresight-Driven Reasoning for Long-Form Video Understanding
+        </h1>
+
+        <div class="authors">
+          <span class="author">Yuchen Sun<sup>1*</sup></span>
+          <span class="author">Siyuan Cheng<sup>1*</sup></span>
+          <span class="author">Shi-Zhe Chen<sup>1&dagger;&ddagger;</sup></span>
+          <span class="author">Yixin Qin<sup>1</sup></span>
+          <span class="author">Jinwen Luo<sup>2</sup></span>
+          <span class="author">Zheng Wei<sup>1&dagger;</sup></span>
+        </div>
+        <div class="affiliations">
+          <span><sup>1</sup>Tencent PCG</span>
+          <span><sup>2</sup>Tencent CSIG</span>
+        </div>
+        <div class="author-notes">
+          * Equal contribution &nbsp;&middot;&nbsp; &dagger; Corresponding author &nbsp;&middot;&nbsp; &ddagger; Project lead
+        </div>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://arxiv.org/abs/2611.26024" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv
+          </a>
+          <a class="btn" href="https://arxiv.org/pdf/2611.26024" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            PDF
+          </a>
+          <a class="btn" href="https://github.com/harry0021/ForeSeek" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .5Z"/></svg>
+            Code
+          </a>
+          <a class="btn" href="https://huggingface.co/Harry0021/ForeSeek" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Weights (8B)
+          </a>
+          <a class="btn" href="https://huggingface.co/datasets/Harry0021/ForeSeek-Data" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Dataset
+          </a>
+          <a class="btn" href="#citation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            BibTeX
+          </a>
+        </div>
+
+        <div class="highlights">
+          <div class="metric-card">
+            <div class="metric-value">2.5–4.4&times;</div>
+            <div class="metric-label">Fewer Frames vs. EVA</div>
+            <div class="metric-sub">22.0–31.0 frames vs. 55.6–137.1 across 5 benchmarks</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">53.2%</div>
+            <div class="metric-label">VideoHolmes (+10.5%)</div>
+            <div class="metric-sub">Beats 32f baseline &amp; GPT-4o (42.0%) using only 22.0 frames</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">+17.6%</div>
+            <div class="metric-label">Video-Native Subset</div>
+            <div class="metric-sub">Video-Oasis temporal reasoning gain on VideoHolmes</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">25–45%</div>
+            <div class="metric-label">Total Token Savings</div>
+            <div class="metric-sub">~2.01 VLM calls per question with greedy decoding</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teaser / Motivation -->
+    <section id="overview">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Motivation</span>
+          <h2 class="section-title">From Reactive Retrieval to Predictive Exploration</h2>
+          <p class="section-desc">Instead of probing the timeline blindly for locally salient clips, ForeSeek anticipates what unseen intervals should contain and turns failed expectations into signals for global backtracking.</p>
+        </div>
+
+        <div class="teaser-grid">
+          <div class="figure-card">
+            <div class="figure-wrap" data-lightbox="html/ForeSeek_intro.png">
+              <img src="html/ForeSeek_intro.png" alt="Prior Agents vs. ForeSeek: reactive retrieval compared with foresight-guided anticipation and verification.">
+              <span class="zoom-hint">Click to expand</span>
+            </div>
+            <p class="figure-caption">
+              <strong>Figure 1. Prior Agents vs. ForeSeek.</strong> Prior agents (top) reactively probe the timeline without explicit expectations about unseen content, whereas ForeSeek (bottom) maintains visually grounded predictions that continuously guide evidence collection.
+            </p>
+          </div>
+
+          <div class="compare-stack">
+            <div class="compare-box old">
+              <div class="compare-badge">Previous Video Agents</div>
+              <h3>Reactive Retrieval Bottlenecks</h3>
+              <ul class="bullet-list">
+                <li><strong>Directionless exploration:</strong> Frame selection follows local saliency rather than a global temporal plan.</li>
+                <li><strong>Silent negative evidence:</strong> Failed retrievals are discarded instead of constraining where to look next.</li>
+                <li><strong>Irreversible commitment:</strong> Once a wrong temporal hypothesis is chased, beliefs are rarely revised globally.</li>
+              </ul>
+            </div>
+
+            <div class="compare-box ours">
+              <div class="compare-badge">ForeSeek Paradigm</div>
+              <h3>Foresight-Driven Evidence Seeking</h3>
+              <ul class="bullet-list">
+                <li><strong>Falsifiable expectations:</strong> Predicts concrete visual cues expected inside an unseen interval before opening it.</li>
+                <li><strong>Verification-driven updates:</strong> Confirms, narrows, or rejects hypotheses against targeted frame observations.</li>
+                <li><strong>Principled backtracking:</strong> Failed predictions demote implausible intervals and redirect search globally.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <section id="abstract" class="alt">
+      <div class="container-narrow">
+        <div class="section-head">
+          <span class="section-kicker">Abstract</span>
+          <h2 class="section-title">Summary</h2>
+        </div>
+        <div class="abstract-card">
+          <p>Long-form video understanding, as a fundamental yet crucial vision task, is being revolutionized by multimodal large language model (MLLM)-based video agents. However, the retrieval-driven nature inherent to these agents creates a significant bottleneck, forcing them to reactively fetch clips based on local saliency without a global temporal plan.</p>
+          <p>To address this, we present <strong>ForeSeek</strong>, a foresight-driven video agent that transforms long-video reasoning from reactive retrieval into predictive exploration. Rather than blindly probing the timeline, ForeSeek forms <strong>visually grounded expectations</strong> over unseen temporal regions, verifies them through targeted observations, and continuously refines its search based on emerging evidence, where <strong>failed expectations serve as informative signals for principled backtracking</strong>.</p>
+          <p>Furthermore, we develop a <strong>two-stage training framework</strong> (SFT on structured foresight trajectories followed by efficiency-aware GSPO) that equips MLLMs with foresight-guided reasoning and efficient decision making. Extensive experiments on five long-video benchmarks demonstrate that ForeSeek consistently improves the efficiency&ndash;accuracy trade-off of long-video reasoning, achieving competitive or superior accuracy while observing <strong>2.5&ndash;4.4&times; fewer frames</strong> than the strongest search-based agent.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Method -->
+    <section id="method">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Method</span>
+          <h2 class="section-title">Predictive State, Verification &amp; Two-Stage Training</h2>
+          <p class="section-desc">At step <em>r</em>, ForeSeek maintains a predictive state S<sub>r</sub> = (B<sub>r</sub>, &phi;<sub>r</sub>, H<sub>&lt;r</sub>): a global interval belief map, a visually grounded expectation for the next interval, and the verification trace.</p>
+        </div>
+
+        <div class="figure-card">
+          <div class="figure-wrap" data-lightbox="html/ForeSeek_main.png">
+            <img src="html/ForeSeek_main.png" alt="Overview of ForeSeek: Phase 1 sparse evaluation and initial prediction, Phase 2 foresight-guided predictive reasoning and belief updates.">
+            <span class="zoom-hint">Click to expand</span>
+          </div>
+          <p class="figure-caption">
+            <strong>Figure 2. Overview of ForeSeek.</strong> <strong>Phase 1</strong> performs a duration-adaptive sparse scan to initialize the temporal belief map and initial prediction. <strong>Phase 2</strong> samples targeted frames inside the chosen interval, verifies the stated expectation, updates interval relevance labels, and either answers, narrows, or redirects globally.
+          </p>
+        </div>
+
+        <div class="method-cards">
+          <article class="method-card">
+            <div class="step-num"><span>1</span> Phase 1 · Sparse Initialization</div>
+            <h3>Duration-Adaptive Global Scan</h3>
+            <p>A query-aware scan covers the full video with a logarithmic frame budget, giving rapid global coverage on short clips without oversampling hour-long videos.</p>
+            <div class="formula-box">
+              N(T) = clip(&lfloor;10 + 3&middot;log<sub>2</sub>(1 + T/600)&rceil;, 10, 20)
+            </div>
+            <p>From these 10&ndash;20 frames and question <em>q</em>, the policy produces the initial global interval belief <strong>B<sub>1</sub></strong> and first expectation <strong>&phi;<sub>1</sub></strong>.</p>
+          </article>
+
+          <article class="method-card">
+            <div class="step-num"><span>2</span> Phase 2 · Predictive Verification</div>
+            <h3>Check Before Choosing Next</h3>
+            <p>Each round inspects <strong>4&ndash;16 frames</strong> inside the target interval and verifies whether observations support &phi;<sub>r</sub>, returning one of three structured verdicts:</p>
+            <div class="verdict-list">
+              <div class="verdict-item hit">
+                <b>Confirmed</b>
+                Evidence validates &phi;<sub>r</sub>; the agent outputs the final answer.
+              </div>
+              <div class="verdict-item partial">
+                <b>Partially Confirmed</b>
+                Scene matches but fine detail is missing; narrows to a tighter sub-interval.
+              </div>
+              <div class="verdict-item miss">
+                <b>Not Found</b>
+                Prediction is rejected; interval is demoted and search redirects globally.
+              </div>
+            </div>
+          </article>
+
+          <article class="method-card">
+            <div class="step-num"><span>3</span> Belief &amp; Two-Stage Training</div>
+            <h3>Global Belief + SFT &rarr; GSPO</h3>
+            <p>Every interval tracks a textual hint and an ordered relevance state guiding global scheduling:</p>
+            <div class="belief-pills">
+              <span class="bpill high">HIGH</span>
+              <span class="bpill med">MEDIUM</span>
+              <span class="bpill low">LOW</span>
+              <span class="bpill elim">ELIM</span>
+            </div>
+            <p><strong>Stage 1 (SFT):</strong> 8,165 foresight trajectories teach explicit expectation, verification, and backtracking.</p>
+            <p><strong>Stage 2 (GSPO):</strong> 4,663 pass@8-filtered prompts optimize multiplicative efficiency reward:</p>
+            <div class="formula-box">
+              R(&tau;) = R<sub>ans</sub>(&tau;) &middot; T(n),&nbsp;&nbsp;T(n) = 1.0 (n&lt;4) &rarr; 0.8 (n=5)
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Experiments</span>
+          <h2 class="section-title">Quantitative Results</h2>
+          <p class="section-desc">Evaluated across five long-video benchmarks without subtitles: VideoMME, LongVideoBench, LVBench, VideoHolmes, and MLVU.</p>
+        </div>
+
+        <div class="tabs-bar" role="tablist" aria-label="Result tables">
+          <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-main">Main Results (Table 1)</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-vnat">Video-Native Subset (Table 2)</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-qwen25">Same-Backbone 7B (Table 3)</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-ablation">Ablations &amp; Efficiency (Tables 4–6)</button>
+        </div>
+
+        <!-- Tab 1: Main Table -->
+        <div class="tab-panel active" id="tab-main" role="tabpanel">
+          <div class="table-card">
+            <div class="table-scroll">
+              <table class="academic">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">VideoMME (w/o sub)</th>
+                    <th colspan="2">LongVideoBench</th>
+                    <th colspan="2">LVBench (w/o sub)</th>
+                    <th colspan="2">VideoHolmes</th>
+                    <th colspan="2">MLVU (w/o sub)</th>
+                  </tr>
+                  <tr class="subhead">
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="group-row"><td colspan="11">Large Multimodal Models (Reference)</td></tr>
+                  <tr>
+                    <td>GPT-4o</td>
+                    <td class="muted-cell">384</td><td>71.9</td>
+                    <td class="muted-cell">32</td><td>58.2</td>
+                    <td class="muted-cell">60</td><td>48.9</td>
+                    <td class="muted-cell">32</td><td>42.0</td>
+                    <td class="muted-cell">0.5fps</td><td>64.6</td>
+                  </tr>
+                  <tr>
+                    <td>GPT-5</td>
+                    <td class="muted-cell">50</td><td>79.8</td>
+                    <td class="muted-cell">384</td><td>64.5</td>
+                    <td class="muted-cell">384</td><td>60.1</td>
+                    <td class="muted-cell">50</td><td>57.0</td>
+                    <td class="muted-cell">50</td><td>76.8</td>
+                  </tr>
+                  <tr>
+                    <td>Gemini-3.1-Flash-Lite</td>
+                    <td class="muted-cell">128</td><td>71.9</td>
+                    <td class="muted-cell">128</td><td>66.7</td>
+                    <td class="muted-cell">128</td><td>54.2</td>
+                    <td class="muted-cell">128</td><td>49.8</td>
+                    <td class="muted-cell">128</td><td>74.0</td>
+                  </tr>
+                  <tr>
+                    <td>Qwen2.5-VL-72B</td>
+                    <td class="muted-cell">768</td><td>73.3</td>
+                    <td class="muted-cell">768</td><td>60.7</td>
+                    <td class="muted-cell">768</td><td>47.3</td>
+                    <td class="muted-cell">&ndash;</td><td>40.2</td>
+                    <td class="muted-cell">768</td><td>74.6</td>
+                  </tr>
+
+                  <tr class="group-row"><td colspan="11">Video Agents on Larger or Proprietary Backbones (Reference)</td></tr>
+                  <tr>
+                    <td>VideoSeek <span class="muted-cell">(GPT-5)</span></td>
+                    <td class="muted-cell">60.9</td><td>70.1</td>
+                    <td class="muted-cell">85.6</td><td>67.3</td>
+                    <td class="muted-cell">148.3</td><td>68.4</td>
+                    <td class="muted-cell">75.5</td><td>48.6</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                  </tr>
+                  <tr>
+                    <td>VideoSeek <span class="muted-cell">(Qwen2.5-VL-72B)</span></td>
+                    <td class="muted-cell">223.8</td><td>51.9</td>
+                    <td class="muted-cell">295</td><td>36.7</td>
+                    <td class="muted-cell">245.9</td><td>34.2</td>
+                    <td class="muted-cell">210.6</td><td>33.7</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                  </tr>
+                  <tr>
+                    <td>VideoAgent <span class="muted-cell">(GPT-4)</span></td>
+                    <td class="muted-cell">87.0</td><td>56.0</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                    <td class="muted-cell">25.5</td><td>29.3</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                  </tr>
+
+                  <tr class="group-row"><td colspan="11">Comparable Methods (&sim;7&ndash;8B Open-Source Foundations)</td></tr>
+                  <tr>
+                    <td>Qwen3-VL-8B-Instruct</td>
+                    <td class="muted-cell">32</td><td>59.4</td>
+                    <td class="muted-cell">32</td><td class="second">58.0</td>
+                    <td class="muted-cell">32</td><td>38.3</td>
+                    <td class="muted-cell">32</td><td>42.7</td>
+                    <td class="muted-cell">32</td><td>61.3</td>
+                  </tr>
+                  <tr>
+                    <td>VideoChat-R1</td>
+                    <td class="muted-cell">192</td><td>60.0</td>
+                    <td class="muted-cell">32</td><td>49.1</td>
+                    <td class="muted-cell">32</td><td>34.3</td>
+                    <td class="muted-cell">32</td><td>33.0</td>
+                    <td class="muted-cell">32</td><td>54.3</td>
+                  </tr>
+                  <tr>
+                    <td>Video-R1</td>
+                    <td class="muted-cell">32</td><td>59.9</td>
+                    <td class="muted-cell">32</td><td>49.1</td>
+                    <td class="muted-cell">32</td><td>35.3</td>
+                    <td class="muted-cell">32</td><td>36.5</td>
+                    <td class="muted-cell">32</td><td>60.2</td>
+                  </tr>
+                  <tr>
+                    <td>Video-MTR</td>
+                    <td class="muted-cell">32</td><td>59.0</td>
+                    <td class="muted-cell">32</td><td>52.3</td>
+                    <td class="muted-cell">32</td><td>38.2</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                    <td class="muted-cell">32</td><td>48.4</td>
+                  </tr>
+                  <tr>
+                    <td>Conan</td>
+                    <td class="muted-cell">32</td><td class="second">60.5</td>
+                    <td class="muted-cell">32</td><td>56.6</td>
+                    <td class="muted-cell">32</td><td>39.2</td>
+                    <td class="muted-cell">32</td><td>44.6</td>
+                    <td class="muted-cell">32</td><td>63.4</td>
+                  </tr>
+                  <tr>
+                    <td>EVA</td>
+                    <td class="muted-cell">78.6</td><td>60.2</td>
+                    <td class="muted-cell">74.8</td><td>55.0</td>
+                    <td class="muted-cell">137.1</td><td class="best">43.3</td>
+                    <td class="muted-cell">55.6</td><td>37.2</td>
+                    <td class="muted-cell">69</td><td class="best">68.3</td>
+                  </tr>
+                  <tr>
+                    <td>FrameThinker</td>
+                    <td class="muted-cell">24.1</td><td>47.6</td>
+                    <td class="muted-cell">21.1</td><td>52.9</td>
+                    <td class="muted-cell">23.9</td><td>36.6</td>
+                    <td class="muted-cell">15.9</td><td class="second">46.8</td>
+                    <td class="muted-cell">23.2</td><td>59.1</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ForeSeek-Base</strong></td>
+                    <td class="muted-cell">44.2</td><td>54.1</td>
+                    <td class="muted-cell">46.9</td><td>52.2</td>
+                    <td class="muted-cell">62.3</td><td>38.7</td>
+                    <td class="muted-cell">41.4</td><td>34.0</td>
+                    <td class="muted-cell">41.8</td><td>50.7</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ForeSeek-SFT</strong></td>
+                    <td class="muted-cell">45.6</td><td>56.5</td>
+                    <td class="muted-cell">42.0</td><td>49.6</td>
+                    <td class="muted-cell">52.1</td><td>37.8</td>
+                    <td class="muted-cell">39.9</td><td>43.4</td>
+                    <td class="muted-cell">49.5</td><td>57.9</td>
+                  </tr>
+                  <tr class="ours-row">
+                    <td>ForeSeek-GSPO</td>
+                    <td>24.8</td><td class="best">61.1</td>
+                    <td>24.1</td><td class="best">60.1</td>
+                    <td>31.0</td><td class="second">40.3</td>
+                    <td>22.0</td><td class="best">53.2</td>
+                    <td>23.4</td><td class="second">66.2</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-foot">
+              <strong>Table 1.</strong> Performance comparison on five long-video benchmarks. <strong>Bold</strong> and <u>underline</u> denote the best and second-best accuracy among comparable &sim;7&ndash;8B open-source methods. VideoMME, LVBench, and MLVU are strictly out-of-distribution (zero training overlap).
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Video-Native -->
+        <div class="tab-panel" id="tab-vnat" role="tabpanel">
+          <div class="vnat-grid">
+            <div class="vnat-card">
+              <div class="vnat-head"><b>VideoMME</b><span class="vnat-gain">+4.6</span></div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>Unif. 32f (V-Nat.)</span><strong>26.0%</strong></div>
+                <div class="bar-track"><div class="bar-fill base" style="width: 52%"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>ForeSeek (24.8f)</span><strong>30.6%</strong></div>
+                <div class="bar-track"><div class="bar-fill ours" style="width: 61.2%"></div></div>
+              </div>
+            </div>
+            <div class="vnat-card">
+              <div class="vnat-head"><b>LongVideoBench</b><span class="vnat-gain">+7.2</span></div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>Unif. 32f (V-Nat.)</span><strong>31.6%</strong></div>
+                <div class="bar-track"><div class="bar-fill base" style="width: 63.2%"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>ForeSeek (24.1f)</span><strong>38.8%</strong></div>
+                <div class="bar-track"><div class="bar-fill ours" style="width: 77.6%"></div></div>
+              </div>
+            </div>
+            <div class="vnat-card">
+              <div class="vnat-head"><b>LVBench</b><span class="vnat-gain">+3.5</span></div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>Unif. 32f (V-Nat.)</span><strong>21.7%</strong></div>
+                <div class="bar-track"><div class="bar-fill base" style="width: 43.4%"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>ForeSeek (31.0f)</span><strong>25.2%</strong></div>
+                <div class="bar-track"><div class="bar-fill ours" style="width: 50.4%"></div></div>
+              </div>
+            </div>
+            <div class="vnat-card">
+              <div class="vnat-head"><b>VideoHolmes</b><span class="vnat-gain">+17.6</span></div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>Unif. 32f (V-Nat.)</span><strong>22.6%</strong></div>
+                <div class="bar-track"><div class="bar-fill base" style="width: 45.2%"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>ForeSeek (22.0f)</span><strong>40.2%</strong></div>
+                <div class="bar-track"><div class="bar-fill ours" style="width: 80.4%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-scroll">
+              <table class="academic" style="min-width: 600px;">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Benchmark</th>
+                    <th colspan="2">Qwen3-VL-8B (Uniform 32f)</th>
+                    <th colspan="2">ForeSeek-GSPO (Adaptive 22&ndash;31f)</th>
+                  </tr>
+                  <tr class="subhead">
+                    <th>All</th><th>Video-Native</th>
+                    <th>All</th><th>Video-Native</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>VideoMME</strong></td>
+                    <td>59.4</td><td>26.0</td>
+                    <td>61.1 <span class="delta">+1.7</span></td>
+                    <td><strong>30.6</strong> <span class="delta">+4.6</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>LongVideoBench</strong></td>
+                    <td>58.0</td><td>31.6</td>
+                    <td>60.1 <span class="delta">+2.1</span></td>
+                    <td><strong>38.8</strong> <span class="delta">+7.2</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>LVBench</strong></td>
+                    <td>38.3</td><td>21.7</td>
+                    <td>40.3 <span class="delta">+2.0</span></td>
+                    <td><strong>25.2</strong> <span class="delta">+3.5</span></td>
+                  </tr>
+                  <tr class="ours-row">
+                    <td>VideoHolmes</td>
+                    <td>42.7</td><td>22.6</td>
+                    <td>53.2 <span class="delta">+10.5</span></td>
+                    <td><strong>40.2</strong> <span class="delta">+17.6</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-foot">
+              <strong>Table 2.</strong> Accuracy on the Video-Oasis <em>video-native</em> (V-Nat.) subset vs. the full set under identical per-frame token budgets. Gains concentrate strongly on questions that strictly require visual&ndash;temporal seeking rather than single-frame or linguistic shortcuts.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Same-backbone Qwen2.5-VL-7B -->
+        <div class="tab-panel" id="tab-qwen25" role="tabpanel">
+          <div class="table-card">
+            <div class="table-scroll">
+              <table class="academic">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method (Qwen2.5-VL-7B)</th>
+                    <th colspan="2">VideoMME (w/o sub)</th>
+                    <th colspan="2">LongVideoBench</th>
+                    <th colspan="2">LVBench (w/o sub)</th>
+                    <th colspan="2">VideoHolmes</th>
+                    <th colspan="2">MLVU (w/o sub)</th>
+                  </tr>
+                  <tr class="subhead">
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                    <th>#Frames &darr;</th><th>Acc &uarr;</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>VideoChat-R1</td>
+                    <td class="muted-cell">192</td><td>60.0</td>
+                    <td class="muted-cell">32</td><td>49.1</td>
+                    <td class="muted-cell">32</td><td>34.3</td>
+                    <td class="muted-cell">32</td><td>33.0</td>
+                    <td class="muted-cell">32</td><td>54.3</td>
+                  </tr>
+                  <tr>
+                    <td>Video-R1</td>
+                    <td class="muted-cell">32</td><td>59.9</td>
+                    <td class="muted-cell">32</td><td>49.1</td>
+                    <td class="muted-cell">32</td><td>35.3</td>
+                    <td class="muted-cell">32</td><td>36.5</td>
+                    <td class="muted-cell">32</td><td>60.2</td>
+                  </tr>
+                  <tr>
+                    <td>Video-MTR</td>
+                    <td class="muted-cell">32</td><td>59.0</td>
+                    <td class="muted-cell">32</td><td>52.3</td>
+                    <td class="muted-cell">32</td><td>38.2</td>
+                    <td class="muted-cell">&ndash;</td><td class="muted-cell">&ndash;</td>
+                    <td class="muted-cell">32</td><td>48.4</td>
+                  </tr>
+                  <tr>
+                    <td>Conan</td>
+                    <td class="muted-cell">32</td><td class="best">60.5</td>
+                    <td class="muted-cell">32</td><td class="second">56.6</td>
+                    <td class="muted-cell">32</td><td>39.2</td>
+                    <td class="muted-cell">32</td><td>44.6</td>
+                    <td class="muted-cell">32</td><td class="second">63.4</td>
+                  </tr>
+                  <tr>
+                    <td>EVA</td>
+                    <td class="muted-cell">78.6</td><td class="second">60.2</td>
+                    <td class="muted-cell">74.8</td><td>55.0</td>
+                    <td class="muted-cell">137.1</td><td class="best">43.3</td>
+                    <td class="muted-cell">55.6</td><td>37.2</td>
+                    <td class="muted-cell">69.0</td><td class="best">68.3</td>
+                  </tr>
+                  <tr>
+                    <td>FrameThinker</td>
+                    <td class="muted-cell">24.1</td><td>47.6</td>
+                    <td class="muted-cell">21.1</td><td>52.9</td>
+                    <td class="muted-cell">23.9</td><td>36.6</td>
+                    <td class="muted-cell">15.9</td><td class="second">46.8</td>
+                    <td class="muted-cell">23.2</td><td>59.1</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ForeSeek-Base</strong></td>
+                    <td class="muted-cell">62.3</td><td>43.9</td>
+                    <td class="muted-cell">59.5</td><td>46.5</td>
+                    <td class="muted-cell">82.5</td><td>33.3</td>
+                    <td class="muted-cell">52.7</td><td>27.9</td>
+                    <td class="muted-cell">62.7</td><td>47.5</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ForeSeek-SFT</strong></td>
+                    <td class="muted-cell">44.9</td><td>50.9</td>
+                    <td class="muted-cell">41.8</td><td>46.7</td>
+                    <td class="muted-cell">54.6</td><td>35.0</td>
+                    <td class="muted-cell">38.8</td><td>36.7</td>
+                    <td class="muted-cell">44.4</td><td>53.4</td>
+                  </tr>
+                  <tr class="ours-row">
+                    <td>ForeSeek-GSPO</td>
+                    <td>24.8</td><td>59.4</td>
+                    <td>24.0</td><td class="best">59.1</td>
+                    <td>31.0</td><td class="second">40.4</td>
+                    <td>22.0</td><td class="best">47.1</td>
+                    <td>23.4</td><td>62.6</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-foot">
+              <strong>Table 3.</strong> Strictly controlled same-backbone comparison on <strong>Qwen2.5-VL-7B</strong>. ForeSeek achieves the best accuracy on LongVideoBench (59.1%) and VideoHolmes (47.1%) and surpasses all 32-frame agents on LVBench (40.4%) with 3&ndash;4&times; fewer frames than EVA.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Ablations & Efficiency -->
+        <div class="tab-panel" id="tab-ablation" role="tabpanel">
+          <div class="sub-tables-grid">
+            <div class="table-card">
+              <div class="table-scroll">
+                <table class="academic">
+                  <thead>
+                    <tr>
+                      <th rowspan="2">PV Ablation (Post-RL)</th>
+                      <th colspan="2">VideoMME</th>
+                      <th colspan="2">LVB</th>
+                      <th colspan="2">LVBench</th>
+                      <th colspan="2">Holmes</th>
+                    </tr>
+                    <tr class="subhead">
+                      <th>Fr.&darr;</th><th>Acc&uarr;</th>
+                      <th>Fr.&darr;</th><th>Acc&uarr;</th>
+                      <th>Fr.&darr;</th><th>Acc&uarr;</th>
+                      <th>Fr.&darr;</th><th>Acc&uarr;</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="ours-row">
+                      <td>ForeSeek (Full)</td>
+                      <td class="best">24.8</td><td class="best">61.1</td>
+                      <td class="best">24.1</td><td class="best">60.1</td>
+                      <td class="best">31.0</td><td class="best">40.3</td>
+                      <td class="best">22.0</td><td class="best">53.2</td>
+                    </tr>
+                    <tr>
+                      <td>w/o PV Sup</td>
+                      <td class="muted-cell">36.3</td><td>59.7</td>
+                      <td class="muted-cell">39.2</td><td>55.1</td>
+                      <td class="muted-cell">45.4</td><td>39.7</td>
+                      <td class="muted-cell">34.8</td><td>51.3</td>
+                    </tr>
+                    <tr>
+                      <td>w/o PV Mech</td>
+                      <td class="muted-cell">27.6</td><td>58.1</td>
+                      <td class="muted-cell">29.2</td><td>57.1</td>
+                      <td class="muted-cell">39.4</td><td>39.5</td>
+                      <td class="muted-cell">24.2</td><td>52.2</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-foot">
+                <strong>Table 4.</strong> Strictly matched post-RL ablation of prediction&ndash;verification (PV). Full ForeSeek achieves the highest accuracy with the fewest frames across all four benchmarks.
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-scroll">
+                <table class="academic">
+                  <thead>
+                    <tr>
+                      <th rowspan="2">Temporal Localization</th>
+                      <th colspan="2">mIoU (%) &uarr;</th>
+                      <th colspan="2">R@0.5 (%) &uarr;</th>
+                    </tr>
+                    <tr class="subhead">
+                      <th>ForeSeek</th><th>EVA</th>
+                      <th>ForeSeek</th><th>EVA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>VideoMME</td><td class="best">24.1</td><td class="muted-cell">19.5</td><td class="best">16.2</td><td class="muted-cell">8.1</td></tr>
+                    <tr><td>LongVideoBench</td><td class="best">13.9</td><td class="muted-cell">10.8</td><td class="best">8.6</td><td class="muted-cell">3.7</td></tr>
+                    <tr><td>LVBench</td><td class="best">4.4</td><td class="muted-cell">3.2</td><td class="best">1.5</td><td class="muted-cell">0.8</td></tr>
+                    <tr><td>VideoHolmes</td><td class="muted-cell">27.3</td><td class="best">32.9</td><td class="muted-cell">17.6</td><td class="best">23.9</td></tr>
+                    <tr><td>MLVU</td><td class="best">22.4</td><td class="muted-cell">17.1</td><td class="best">16.4</td><td class="muted-cell">6.0</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-foot">
+                <strong>Table 5.</strong> Overlap between the final inspected interval and ground-truth evidence spans. ForeSeek nearly doubles or more than doubles R@0.5 on VideoMME, LongVideoBench, and MLVU.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-scroll">
+              <table class="academic">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Benchmark (Greedy Decoding)</th>
+                    <th colspan="2">Acc (%) &uarr;</th>
+                    <th colspan="2">VLM Calls &darr;</th>
+                    <th colspan="2">Frames &darr;</th>
+                    <th colspan="2">Total Tokens &darr;</th>
+                  </tr>
+                  <tr class="subhead">
+                    <th>EVA</th><th>ForeSeek</th>
+                    <th>EVA</th><th>ForeSeek</th>
+                    <th>EVA</th><th>ForeSeek</th>
+                    <th>EVA</th><th>ForeSeek</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>VideoMME</strong></td>
+                    <td class="muted-cell">60.2</td><td class="best">61.2</td>
+                    <td class="muted-cell">2.41</td><td class="best">2.01</td>
+                    <td class="muted-cell">82.0</td><td class="best">25.1</td>
+                    <td class="muted-cell">16.9k</td><td class="best">10.5k</td>
+                  </tr>
+                  <tr>
+                    <td><strong>LongVideoBench</strong></td>
+                    <td class="muted-cell">55.0</td><td class="best">58.9</td>
+                    <td class="muted-cell">2.57</td><td class="best">2.00</td>
+                    <td class="muted-cell">85.3</td><td class="best">24.1</td>
+                    <td class="muted-cell">19.0k</td><td class="best">10.6k</td>
+                  </tr>
+                  <tr>
+                    <td><strong>LVBench</strong></td>
+                    <td class="best">43.3</td><td>41.0</td>
+                    <td class="muted-cell">2.63</td><td class="best">2.01</td>
+                    <td class="muted-cell">133.6</td><td class="best">31.1</td>
+                    <td class="muted-cell">20.5k</td><td class="best">15.5k</td>
+                  </tr>
+                  <tr>
+                    <td><strong>VideoHolmes</strong></td>
+                    <td class="muted-cell">37.2</td><td class="best">52.9</td>
+                    <td class="muted-cell">2.75</td><td class="best">2.02</td>
+                    <td class="muted-cell">82.7</td><td class="best">22.3</td>
+                    <td class="muted-cell">9.1k</td><td class="best">5.0k</td>
+                  </tr>
+                  <tr>
+                    <td><strong>MLVU</strong></td>
+                    <td class="best">68.3</td><td>66.5</td>
+                    <td class="muted-cell">2.42</td><td class="best">2.01</td>
+                    <td class="muted-cell">93.7</td><td class="best">23.5</td>
+                    <td class="muted-cell">16.6k</td><td class="best">11.8k</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-foot">
+              <strong>Table 6.</strong> End-to-end efficiency under deterministic greedy decoding. ForeSeek lowers VLM calls from 2.41&ndash;2.75 to &sim;2.01 and cuts total visual + text tokens by 25&ndash;45%.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Examples -->
+    <section id="examples">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Qualitative Trajectories</span>
+          <h2 class="section-title">Examples</h2>
+        </div>
+
+        <article class="case-card">
+          <div class="case-top">
+            <span class="case-meta">LVBench &middot; #1210 &middot; Va_9Q6ekm60 &middot; 35m 30s</span>
+            <div class="case-controls">
+              <button class="mini-btn" type="button" data-replay="gif-lvbench">Replay GIF</button>
+              <button class="mini-btn" type="button" data-lightbox="html/foreseek_lvbench_1210.gif">Expand</button>
+            </div>
+          </div>
+          <h3 class="case-q">What is in the pocket of the shop assistant&rsquo;s clothes?</h3>
+          <div class="opts-row">
+            <span class="opt-pill">A. A lollipop</span>
+            <span class="opt-pill">B. A pencil</span>
+            <span class="opt-pill">C. A protein bar</span>
+            <span class="opt-pill correct">D. A signature pen &#10003;</span>
+          </div>
+          <div class="trace-steps">
+            <div class="trace-step miss">
+              <div class="trace-head">
+                <span class="trace-time">R1 &middot; 1775&ndash;1893s</span>
+                <span class="trace-badge">Not Found</span>
+              </div>
+              <p>Expected the apron pocket. Observed frames only show hands lifting fish-shaped waffles from a machine.</p>
+            </div>
+            <div class="trace-step partial">
+              <div class="trace-head">
+                <span class="trace-time">R2 &middot; 1656&ndash;1775s</span>
+                <span class="trace-badge">Partially Confirmed</span>
+              </div>
+              <p>Redirected earlier. White gloves and a blue apron appear, but the pocket item is still unreadable.</p>
+            </div>
+            <div class="trace-step hit">
+              <div class="trace-head">
+                <span class="trace-time">R3 &middot; 1740&ndash;1760s</span>
+                <span class="trace-badge">Confirmed</span>
+              </div>
+              <p>Zoomed to a 20s window. A black pen with a silver clip sits inside the apron pocket. Answer D.</p>
+            </div>
+          </div>
+          <div class="gif-stage">
+            <img id="gif-lvbench" src="html/foreseek_lvbench_1210.gif" data-lightbox="html/foreseek_lvbench_1210.gif" alt="LVBench 1210 search trajectory across three rounds ending in a 20-second window.">
+          </div>
+        </article>
+
+        <article class="case-card">
+          <div class="case-top">
+            <span class="case-meta">Video-MME &middot; #1406 &middot; IQcTd4xZ44o &middot; 8m 07s</span>
+            <div class="case-controls">
+              <button class="mini-btn" type="button" data-replay="gif-vmme">Replay GIF</button>
+              <button class="mini-btn" type="button" data-lightbox="html/foreseek_vmme_1406.gif">Expand</button>
+            </div>
+          </div>
+          <h3 class="case-q">Which country does the second athlete represent when he takes out a flag?</h3>
+          <div class="opts-row">
+            <span class="opt-pill">A. Poland</span>
+            <span class="opt-pill correct">B. Kenya &#10003;</span>
+            <span class="opt-pill">C. Algeria</span>
+            <span class="opt-pill">D. Norway</span>
+          </div>
+          <div class="trace-steps">
+            <div class="trace-step miss">
+              <div class="trace-head">
+                <span class="trace-time">R1 &middot; 406&ndash;487s</span>
+                <span class="trace-badge">Not Found</span>
+              </div>
+              <p>Expected a flag celebration near the finish. Frames only show runners crossing the line and a leaderboard.</p>
+            </div>
+            <div class="trace-step partial">
+              <div class="trace-head">
+                <span class="trace-time">R2 &middot; 324&ndash;406s</span>
+                <span class="trace-badge">Partially Confirmed</span>
+              </div>
+              <p>Moved earlier. An athlete starts lifting a flag, though the country markings are not clear yet.</p>
+            </div>
+            <div class="trace-step hit">
+              <div class="trace-head">
+                <span class="trace-time">R3 &middot; 345&ndash;375s</span>
+                <span class="trace-badge">Confirmed</span>
+              </div>
+              <p>Zoomed to 30s. Bib CHERUYOT and the Kenyan flag clearly fill the frames. Answer B.</p>
+            </div>
+          </div>
+          <div class="gif-stage">
+            <img id="gif-vmme" src="html/foreseek_vmme_1406.gif" data-lightbox="html/foreseek_vmme_1406.gif" alt="Video-MME 1406 search trajectory redirecting from finish line to the Kenyan flag.">
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Open-Source Resources & Citation -->
+    <section id="citation" class="alt">
+      <div class="container-narrow">
+        <div class="section-head">
+          <span class="section-kicker">Resources &amp; Citation</span>
+          <h2 class="section-title">Open-Source Release &amp; BibTeX</h2>
+        </div>
+
+        <div class="resources-grid">
+          <a class="res-card" href="https://github.com/harry0021/ForeSeek" target="_blank" rel="noopener">
+            <div class="res-title">
+              <span>GitHub Code</span>
+              <span>&nearr;</span>
+            </div>
+            <p>Agent loop, foresight trajectory synthesis pipeline, SFT &amp; GSPO training launchers, and evaluation scripts.</p>
+            <span class="res-link-text">harry0021/ForeSeek</span>
+          </a>
+
+          <a class="res-card" href="https://huggingface.co/Harry0021/ForeSeek" target="_blank" rel="noopener">
+            <div class="res-title">
+              <span>Model Weights</span>
+              <span>&nearr;</span>
+            </div>
+            <p>Released ForeSeek-8B checkpoint trained with two-stage SFT + efficiency-aware GSPO on Qwen3-VL-8B.</p>
+            <span class="res-link-text">Harry0021/ForeSeek</span>
+          </a>
+
+          <a class="res-card" href="https://huggingface.co/datasets/Harry0021/ForeSeek-Data" target="_blank" rel="noopener">
+            <div class="res-title">
+              <span>Training Data</span>
+              <span>&nearr;</span>
+            </div>
+            <p>Structured SFT foresight trajectories (8,165 questions / 32,101 turns) and pass@8-filtered RL prompts (4,663).</p>
+            <span class="res-link-text">Harry0021/ForeSeek-Data</span>
+          </a>
+        </div>
+
+        <div class="bibtex-card">
+          <div class="bibtex-head">
+            <span>BibTeX</span>
+            <button class="copy-btn" id="copy-bibtex" type="button">Copy BibTeX</button>
+          </div>
+          <pre class="bibtex-code" id="bibtex-text">@article{sun2026foreseek,
+  title={ForeSeek: Foresight-Driven Reasoning for Long-Form Video Understanding},
+  author={Sun, Yuchen and Cheng, Siyuan and Chen, Shi-Zhe and Qin, Yixin and Luo, Jinwen and Wei, Zheng},
+  journal={arXiv preprint arXiv:2611.26024},
+  year={2026}
+}</pre>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>ForeSeek &middot; Tencent PCG &amp; Tencent CSIG</span>
+      <div class="footer-links">
+        <a href="https://arxiv.org/abs/2611.26024" target="_blank" rel="noopener">arXiv</a>
+        <a href="https://arxiv.org/pdf/2611.26024" target="_blank" rel="noopener">PDF</a>
+        <a href="https://github.com/harry0021/ForeSeek" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://huggingface.co/Harry0021/ForeSeek" target="_blank" rel="noopener">Weights</a>
+        <a href="https://huggingface.co/datasets/Harry0021/ForeSeek-Data" target="_blank" rel="noopener">Data</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Close preview">&times;</button>
+    <img id="lightbox-img" src="" alt="Expanded view">
+  </div>
+
+<script>
+  // Results Tabs
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      tabBtns.forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', String(active));
+      });
+      tabPanels.forEach(p => p.classList.toggle('active', p.id === target));
+    });
+  });
+
+  // Lightbox Preview
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxClose = document.getElementById('lightbox-close');
+
+  function openLightbox(src, alt) {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || 'Expanded preview';
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('[data-lightbox]').forEach(el => {
+    el.addEventListener('click', () => {
+      const src = el.dataset.lightbox;
+      const img = el.tagName === 'IMG' ? el : el.querySelector('img');
+      openLightbox(src, img ? img.alt : '');
+    });
+  });
+  lightbox.addEventListener('click', e => {
+    if (e.target === lightbox || e.target === lightboxClose) closeLightbox();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+
+  // Replay GIF
+  document.querySelectorAll('[data-replay]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const img = document.getElementById(btn.dataset.replay);
+      if (!img) return;
+      const base = img.getAttribute('src').split('?')[0];
+      img.setAttribute('src', base + '?t=' + Date.now());
+    });
+  });
+
+  // Copy BibTeX
+  const copyBtn = document.getElementById('copy-bibtex');
+  const bibText = document.getElementById('bibtex-text');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(bibText.textContent.trim());
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = bibText.textContent.trim();
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    copyBtn.textContent = 'Copied!';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy BibTeX';
+      copyBtn.classList.remove('copied');
+    }, 1800);
+  });
+
+  // Navbar ScrollSpy
+  const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = '#' + entry.target.id;
+        navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
 </body>
 </html>
