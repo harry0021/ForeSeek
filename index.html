@@ -1146,8 +1146,8 @@
         <a href="#overview">Overview</a>
         <a href="#abstract">Abstract</a>
         <a href="#method">Method</a>
-        <a href="#results">Results</a>
         <a href="#examples">Examples</a>
+        <a href="#results">Results</a>
         <a href="#citation">Citation</a>
       </nav>
       <div class="nav-actions">
@@ -1368,8 +1368,104 @@
       </div>
     </section>
 
+    <!-- Examples -->
+    <section id="examples" class="alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Qualitative Trajectories</span>
+          <h2 class="section-title">Examples</h2>
+        </div>
+
+        <article class="case-card">
+          <div class="case-top">
+            <span class="case-meta">LVBench &middot; #1210 &middot; Va_9Q6ekm60 &middot; 35m 30s</span>
+            <div class="case-controls">
+              <button class="mini-btn" type="button" data-replay="gif-lvbench">Replay GIF</button>
+              <button class="mini-btn" type="button" data-lightbox="html/foreseek_lvbench_1210.gif">Expand</button>
+            </div>
+          </div>
+          <h3 class="case-q">What is in the pocket of the shop assistant&rsquo;s clothes?</h3>
+          <div class="opts-row">
+            <span class="opt-pill">A. A lollipop</span>
+            <span class="opt-pill">B. A pencil</span>
+            <span class="opt-pill">C. A protein bar</span>
+            <span class="opt-pill correct">D. A signature pen &#10003;</span>
+          </div>
+          <div class="trace-steps">
+            <div class="trace-step miss">
+              <div class="trace-head">
+                <span class="trace-time">R1 &middot; 1775&ndash;1893s</span>
+                <span class="trace-badge">Not Found</span>
+              </div>
+              <p>Expected the apron pocket. Observed frames only show hands lifting fish-shaped waffles from a machine.</p>
+            </div>
+            <div class="trace-step partial">
+              <div class="trace-head">
+                <span class="trace-time">R2 &middot; 1656&ndash;1775s</span>
+                <span class="trace-badge">Partially Confirmed</span>
+              </div>
+              <p>Redirected earlier. White gloves and a blue apron appear, but the pocket item is still unreadable.</p>
+            </div>
+            <div class="trace-step hit">
+              <div class="trace-head">
+                <span class="trace-time">R3 &middot; 1740&ndash;1760s</span>
+                <span class="trace-badge">Confirmed</span>
+              </div>
+              <p>Zoomed to a 20s window. A black pen with a silver clip sits inside the apron pocket. Answer D.</p>
+            </div>
+          </div>
+          <div class="gif-stage">
+            <img id="gif-lvbench" src="html/foreseek_lvbench_1210.gif" data-lightbox="html/foreseek_lvbench_1210.gif" alt="LVBench 1210 search trajectory across three rounds ending in a 20-second window.">
+          </div>
+        </article>
+
+        <article class="case-card">
+          <div class="case-top">
+            <span class="case-meta">Video-MME &middot; #1406 &middot; IQcTd4xZ44o &middot; 8m 07s</span>
+            <div class="case-controls">
+              <button class="mini-btn" type="button" data-replay="gif-vmme">Replay GIF</button>
+              <button class="mini-btn" type="button" data-lightbox="html/foreseek_vmme_1406.gif">Expand</button>
+            </div>
+          </div>
+          <h3 class="case-q">Which country does the second athlete represent when he takes out a flag?</h3>
+          <div class="opts-row">
+            <span class="opt-pill">A. Poland</span>
+            <span class="opt-pill correct">B. Kenya &#10003;</span>
+            <span class="opt-pill">C. Algeria</span>
+            <span class="opt-pill">D. Norway</span>
+          </div>
+          <div class="trace-steps">
+            <div class="trace-step miss">
+              <div class="trace-head">
+                <span class="trace-time">R1 &middot; 406&ndash;487s</span>
+                <span class="trace-badge">Not Found</span>
+              </div>
+              <p>Expected a flag celebration near the finish. Frames only show runners crossing the line and a leaderboard.</p>
+            </div>
+            <div class="trace-step partial">
+              <div class="trace-head">
+                <span class="trace-time">R2 &middot; 324&ndash;406s</span>
+                <span class="trace-badge">Partially Confirmed</span>
+              </div>
+              <p>Moved earlier. An athlete starts lifting a flag, though the country markings are not clear yet.</p>
+            </div>
+            <div class="trace-step hit">
+              <div class="trace-head">
+                <span class="trace-time">R3 &middot; 345&ndash;375s</span>
+                <span class="trace-badge">Confirmed</span>
+              </div>
+              <p>Zoomed to 30s. Bib CHERUYOT and the Kenyan flag clearly fill the frames. Answer B.</p>
+            </div>
+          </div>
+          <div class="gif-stage">
+            <img id="gif-vmme" src="html/foreseek_vmme_1406.gif" data-lightbox="html/foreseek_vmme_1406.gif" alt="Video-MME 1406 search trajectory redirecting from finish line to the Kenyan flag.">
+          </div>
+        </article>
+      </div>
+    </section>
+
     <!-- Results -->
-    <section id="results" class="alt">
+    <section id="results">
       <div class="container">
         <div class="section-head">
           <span class="section-kicker">Experiments</span>
@@ -1900,102 +1996,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Examples -->
-    <section id="examples">
-      <div class="container">
-        <div class="section-head">
-          <span class="section-kicker">Qualitative Trajectories</span>
-          <h2 class="section-title">Examples</h2>
-        </div>
-
-        <article class="case-card">
-          <div class="case-top">
-            <span class="case-meta">LVBench &middot; #1210 &middot; Va_9Q6ekm60 &middot; 35m 30s</span>
-            <div class="case-controls">
-              <button class="mini-btn" type="button" data-replay="gif-lvbench">Replay GIF</button>
-              <button class="mini-btn" type="button" data-lightbox="html/foreseek_lvbench_1210.gif">Expand</button>
-            </div>
-          </div>
-          <h3 class="case-q">What is in the pocket of the shop assistant&rsquo;s clothes?</h3>
-          <div class="opts-row">
-            <span class="opt-pill">A. A lollipop</span>
-            <span class="opt-pill">B. A pencil</span>
-            <span class="opt-pill">C. A protein bar</span>
-            <span class="opt-pill correct">D. A signature pen &#10003;</span>
-          </div>
-          <div class="trace-steps">
-            <div class="trace-step miss">
-              <div class="trace-head">
-                <span class="trace-time">R1 &middot; 1775&ndash;1893s</span>
-                <span class="trace-badge">Not Found</span>
-              </div>
-              <p>Expected the apron pocket. Observed frames only show hands lifting fish-shaped waffles from a machine.</p>
-            </div>
-            <div class="trace-step partial">
-              <div class="trace-head">
-                <span class="trace-time">R2 &middot; 1656&ndash;1775s</span>
-                <span class="trace-badge">Partially Confirmed</span>
-              </div>
-              <p>Redirected earlier. White gloves and a blue apron appear, but the pocket item is still unreadable.</p>
-            </div>
-            <div class="trace-step hit">
-              <div class="trace-head">
-                <span class="trace-time">R3 &middot; 1740&ndash;1760s</span>
-                <span class="trace-badge">Confirmed</span>
-              </div>
-              <p>Zoomed to a 20s window. A black pen with a silver clip sits inside the apron pocket. Answer D.</p>
-            </div>
-          </div>
-          <div class="gif-stage">
-            <img id="gif-lvbench" src="html/foreseek_lvbench_1210.gif" data-lightbox="html/foreseek_lvbench_1210.gif" alt="LVBench 1210 search trajectory across three rounds ending in a 20-second window.">
-          </div>
-        </article>
-
-        <article class="case-card">
-          <div class="case-top">
-            <span class="case-meta">Video-MME &middot; #1406 &middot; IQcTd4xZ44o &middot; 8m 07s</span>
-            <div class="case-controls">
-              <button class="mini-btn" type="button" data-replay="gif-vmme">Replay GIF</button>
-              <button class="mini-btn" type="button" data-lightbox="html/foreseek_vmme_1406.gif">Expand</button>
-            </div>
-          </div>
-          <h3 class="case-q">Which country does the second athlete represent when he takes out a flag?</h3>
-          <div class="opts-row">
-            <span class="opt-pill">A. Poland</span>
-            <span class="opt-pill correct">B. Kenya &#10003;</span>
-            <span class="opt-pill">C. Algeria</span>
-            <span class="opt-pill">D. Norway</span>
-          </div>
-          <div class="trace-steps">
-            <div class="trace-step miss">
-              <div class="trace-head">
-                <span class="trace-time">R1 &middot; 406&ndash;487s</span>
-                <span class="trace-badge">Not Found</span>
-              </div>
-              <p>Expected a flag celebration near the finish. Frames only show runners crossing the line and a leaderboard.</p>
-            </div>
-            <div class="trace-step partial">
-              <div class="trace-head">
-                <span class="trace-time">R2 &middot; 324&ndash;406s</span>
-                <span class="trace-badge">Partially Confirmed</span>
-              </div>
-              <p>Moved earlier. An athlete starts lifting a flag, though the country markings are not clear yet.</p>
-            </div>
-            <div class="trace-step hit">
-              <div class="trace-head">
-                <span class="trace-time">R3 &middot; 345&ndash;375s</span>
-                <span class="trace-badge">Confirmed</span>
-              </div>
-              <p>Zoomed to 30s. Bib CHERUYOT and the Kenyan flag clearly fill the frames. Answer B.</p>
-            </div>
-          </div>
-          <div class="gif-stage">
-            <img id="gif-vmme" src="html/foreseek_vmme_1406.gif" data-lightbox="html/foreseek_vmme_1406.gif" alt="Video-MME 1406 search trajectory redirecting from finish line to the Kenyan flag.">
-          </div>
-        </article>
       </div>
     </section>
 
